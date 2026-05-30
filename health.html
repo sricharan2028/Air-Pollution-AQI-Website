@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breathe | Health Tips — Air Quality Guide</title>
+    <meta name="description" content="Learn how air quality affects your health. Protective measures, AQI scale guide, and advice for sensitive groups.">
+    <meta name="theme-color" content="#020617">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌬️</text></svg>">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* ---- Health page specific styles ---- */
+
+        .health-hero {
+            text-align: center; padding: 3rem 1rem 4rem;
+        }
+        .health-hero h1 {
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            margin-bottom: 1rem;
+        }
+        .health-hero p {
+            max-width: 600px; margin: 0 auto 2rem;
+            font-size: 1.1rem;
+        }
+        .health-hero-badges {
+            display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;
+        }
+        .hero-tag {
+            background: rgba(255,255,255,0.07); border: 1px solid var(--glass-border);
+            border-radius: 99px; padding: 0.4rem 1rem; font-size: 0.85rem; font-weight: 500;
+            display: flex; align-items: center; gap: 0.4rem;
+        }
+
+        /* AQI Scale Section */
+        .aqi-scale-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 4rem;
+        }
+        .scale-card {
+            padding: 1.75rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex; flex-direction: column; gap: 1rem;
+        }
+        .scale-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+        }
+        .scale-card-header {
+            display: flex; align-items: center; gap: 1rem;
+        }
+        .scale-color-swatch {
+            width: 48px; height: 48px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; flex-shrink: 0;
+        }
+        .scale-range {
+            font-size: 0.8rem; color: var(--text-secondary);
+            text-transform: uppercase; letter-spacing: 0.06em;
+            margin-top: 0.15rem;
+        }
+        .scale-title { font-size: 1.2rem; font-weight: 700; }
+        .scale-card p { font-size: 0.9rem; line-height: 1.65; }
+        .scale-tips { display: flex; flex-direction: column; gap: 0.5rem; }
+        .scale-tip {
+            display: flex; align-items: flex-start; gap: 0.6rem;
+            font-size: 0.88rem; line-height: 1.5;
+        }
+        .scale-tip i { color: var(--text-secondary); margin-top: 0.1rem; flex-shrink: 0; }
+
+        /* Groups Section */
+        .groups-section { margin-bottom: 4rem; }
+        .groups-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.25rem; margin-top: 1.5rem;
+        }
+        .group-card {
+            padding: 1.75rem; text-align: center;
+            background: var(--glass-bg); backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border); border-radius: 20px;
+            transition: transform 0.2s;
+            display: flex; flex-direction: column; align-items: center; gap: 1rem;
+        }
+        .group-card:hover { transform: translateY(-4px); }
+        .group-icon {
+            width: 60px; height: 60px; border-radius: 18px;
+            background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.75rem; color: var(--theme-accent);
+        }
+        .group-card h3 { font-size: 1.05rem; }
+        .group-card p  { font-size: 0.85rem; }
+
+        /* Pollutants Info */
+        .pollutants-info-section { margin-bottom: 4rem; }
+        .pollutant-info-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem; margin-top: 1.5rem;
+        }
+        .pollutant-info-card {
+            padding: 1.5rem;
+            background: var(--glass-bg); backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border); border-radius: 20px;
+            display: flex; gap: 1rem; align-items: flex-start;
+            transition: transform 0.2s;
+        }
+        .pollutant-info-card:hover { transform: translateY(-4px); }
+        .pollutant-icon-box {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; font-weight: 800; color: var(--theme-accent); flex-shrink: 0;
+        }
+        .pollutant-info-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.35rem; }
+        .pollutant-info-card p  { font-size: 0.85rem; line-height: 1.6; }
+
+        /* FAQ Accordion */
+        .faq-section { margin-bottom: 4rem; }
+        .faq-list { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem; }
+        .faq-item {
+            background: var(--glass-bg); backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border); border-radius: 16px;
+            overflow: hidden; transition: border-color 0.2s;
+        }
+        .faq-item.open { border-color: rgba(255,255,255,0.2); }
+        .faq-question {
+            width: 100%; background: none; border: none;
+            color: #fff; font-family: inherit; font-size: 1rem; font-weight: 600;
+            padding: 1.25rem 1.5rem; text-align: left;
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 1rem; cursor: pointer;
+            transition: background 0.2s;
+        }
+        .faq-question:hover { background: rgba(255,255,255,0.05); }
+        .faq-chevron { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); flex-shrink: 0; color: var(--text-secondary); }
+        .faq-item.open .faq-chevron { transform: rotate(180deg); color: var(--theme-accent); }
+        .faq-answer {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), padding 0.2s;
+            padding: 0 1.5rem;
+        }
+        .faq-answer p { font-size: 0.9rem; padding-bottom: 1.25rem; }
+
+        /* Section headers */
+        .health-section { margin-bottom: 4rem; }
+        .health-section-header { margin-bottom: 1.5rem; }
+        .health-section-header h2 { margin-bottom: 0.5rem; }
+        .health-section-header p  { max-width: 560px; }
+
+        @media (max-width: 768px) {
+            .aqi-scale-grid, .groups-grid, .pollutant-info-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="theme-default">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="app-container">
+        <!-- Navigation -->
+        <nav class="top-nav">
+            <a href="index.html" class="logo" aria-label="Breathe Home">
+                <div class="logo-icon-wrapper"><i class="ph ph-wind"></i></div>
+                <span>Breathe<span class="logo-dot">.</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Dashboard</a>
+                <a href="map.html">Map View</a>
+                <a href="health.html" class="active">Health Tips</a>
+            </div>
+            <div class="nav-right">
+                <a href="index.html" class="glass-btn"><i class="ph ph-magnifying-glass"></i> Check AQI</a>
+                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open menu"><i class="ph ph-list"></i></button>
+            </div>
+        </nav>
+
+        <!-- Mobile Drawer -->
+        <div class="mobile-nav-drawer hidden" id="mobileNavDrawer">
+            <a href="index.html">Dashboard</a>
+            <a href="map.html">Map View</a>
+            <a href="health.html">Health Tips</a>
+        </div>
+
+        <!-- Hero -->
+        <div class="health-hero">
+            <h1>Breathe <span style="color:var(--theme-accent)">Better</span>,<br>Live Better.</h1>
+            <p>Understanding air quality is the first step to protecting yourself and your family. Here's everything you need to know.</p>
+            <div class="health-hero-badges">
+                <span class="hero-tag"><i class="ph ph-heart-pulse"></i> Health Guidance</span>
+                <span class="hero-tag"><i class="ph ph-shield-check"></i> Protective Measures</span>
+                <span class="hero-tag"><i class="ph ph-info"></i> AQI Explained</span>
+                <span class="hero-tag"><i class="ph ph-first-aid"></i> WHO Guidelines</span>
+            </div>
+        </div>
+
+        <!-- AQI Scale Guide -->
+        <section class="health-section" id="aqiScale">
+            <div class="health-section-header">
+                <h2>The AQI Scale Explained</h2>
+                <p>The US EPA Air Quality Index (AQI) runs from 0 to 500. Higher values indicate greater levels of air pollution and health concern.</p>
+            </div>
+
+            <div class="aqi-scale-grid">
+
+                <!-- Good -->
+                <div class="scale-card" style="border-color: rgba(16,185,129,0.3);">
+                    <div class="scale-card-header">
+                        <div class="scale-color-swatch" style="background:rgba(16,185,129,0.15);color:#10b981">
+                            <i class="ph ph-smiley"></i>
+                        </div>
+                        <div>
+                            <div class="scale-title" style="color:#10b981">Good</div>
+                            <div class="scale-range">AQI 0 – 50</div>
+                        </div>
+                    </div>
+                    <p>Air quality is satisfactory, and air pollution poses little or no risk to the general population.</p>
+                    <div class="scale-tips">
+                        <div class="scale-tip"><i class="ph ph-check-circle"></i> Enjoy outdoor activities freely</div>
+                        <div class="scale-tip"><i class="ph ph-check-circle"></i> Open windows for ventilation</div>
+                        <div class="scale-tip"><i class="ph ph-check-circle"></i> No precautions needed</div>
+                    </div>
+                </div>
+
+                <!-- Moderate -->
+                <div class="scale-card" style="border-color: rgba(251,191,36,0.3);">
+                    <div class="scale-card-header">
+                        <div class="scale-color-swatch" style="background:rgba(251,191,36,0.15);color:#fbbf24">
+                            <i class="ph ph-smiley-meh"></i>
+                        </div>
+                        <div>
+                            <div class="scale-title" style="color:#fbbf24">Moderate</div>
+                            <div class="scale-range">AQI 51 – 100</div>
+                        </div>
+                    </div>
+                    <p>Acceptable air quality. A small number of people who are unusually sensitive to air pollution may experience minor discomfort.</p>
+                    <div class="scale-tips">
+                        <div class="scale-tip"><i class="ph ph-check-circle"></i> Outdoor activities are generally fine</div>
+                        <div class="scale-tip"><i class="ph ph-warning"></i> Sensitive individuals should limit prolonged outdoor exertion</div>
+                        <div class="scale-tip"><i class="ph ph-check-circle"></i> Keep windows open unless symptomatic</div>
+                    </div>
+                </div>
+
+                <!-- Unhealthy for Sensitive Groups -->
+                <div class="scale-card" style="border-color: rgba(249,115,22,0.3);">
+                    <div class="scale-card-header">
+                        <div class="scale-color-swatch" style="background:rgba(249,115,22,0.15);color:#f97316">
+                            <i class="ph ph-smiley-sad"></i>
+                        </div>
+                        <div>
+                            <div class="scale-title" style="color:#f97316">Unhealthy for Sensitive Groups</div>
+                            <div class="scale-range">AQI 101 – 150</div>
+                        </div>
+                    </div>
+                    <p>Sensitive groups (children, elderly, people with asthma or heart conditions) may experience health effects. The general public is less likely to be affected.</p>
+                    <div class="scale-tips">
+                        <div class="scale-tip"><i class="ph ph-warning"></i> Sensitive groups should reduce outdoor exertion</div>
+                        <div class="scale-tip"><i class="ph ph-first-aid"></i> Keep inhalers or medication accessible</div>
+                        <div class="scale-tip"><i class="ph ph-check-circle"></i> General public: normal activity is OK</div>
+                    </div>
+                </div>
+
+                <!-- Unhealthy -->
+                <div class="scale-card" style="border-color: rgba(239,68,68,0.3);">
+                    <div class="scale-card-header">
+                        <div class="scale-color-swatch" style="background:rgba(239,68,68,0.15);color:#ef4444">
+                            <i class="ph ph-mask-sad"></i>
+                        </div>
+                        <div>
+                            <div class="scale-title" style="color:#ef4444">Unhealthy</div>
+                            <div class="scale-range">AQI 151 – 200</div>
+                        </div>
+                    </div>
+                    <p>Everyone may begin to experience adverse health effects. Sensitive groups will be more severely affected.</p>
+                    <div class="scale-tips">
+                        <div class="scale-tip"><i class="ph ph-x-circle"></i> Avoid prolonged outdoor activity</div>
+                        <div class="scale-tip"><i class="ph ph-mask-happy"></i> Wear an N95/KN95 mask outdoors</div>
+                        <div class="scale-tip"><i class="ph ph-house"></i> Use air purifiers indoors</div>
+                        <div class="scale-tip"><i class="ph ph-x-circle"></i> Sensitive groups should stay indoors</div>
+                    </div>
+                </div>
+
+                <!-- Very Unhealthy -->
+                <div class="scale-card" style="border-color: rgba(139,92,246,0.3);">
+                    <div class="scale-card-header">
+                        <div class="scale-color-swatch" style="background:rgba(139,92,246,0.15);color:#8b5cf6">
+                            <i class="ph ph-warning-circle"></i>
+                        </div>
+                        <div>
+                            <div class="scale-title" style="color:#8b5cf6">Very Unhealthy</div>
+                            <div class="scale-range">AQI 201 – 300</div>
+                        </div>
+                    </div>
+                    <p>Health alert — the risk of health effects is increased for everyone. Serious effects expected in sensitive groups.</p>
+                    <div class="scale-tips">
+                        <div class="scale-tip"><i class="ph ph-x-circle"></i> Stay indoors as much as possible</div>
+                        <div class="scale-tip"><i class="ph ph-mask-happy"></i> N95 mask is essential if outdoors</div>
+                        <div class="scale-tip"><i class="ph ph-fan"></i> Run air purifiers and keep windows closed</div>
+                        <div class="scale-tip"><i class="ph ph-phone"></i> Seek medical care if experiencing symptoms</div>
+                    </div>
+                </div>
+
+                <!-- Hazardous -->
+                <div class="scale-card" style="border-color: rgba(225,29,72,0.3);">
+                    <div class="scale-card-header">
+                        <div class="scale-color-swatch" style="background:rgba(225,29,72,0.15);color:#e11d48">
+                            <i class="ph ph-skull"></i>
+                        </div>
+                        <div>
+                            <div class="scale-title" style="color:#e11d48">Hazardous</div>
+                            <div class="scale-range">AQI 301 – 500</div>
+                        </div>
+                    </div>
+                    <p>Health warning of emergency conditions. The entire population is more likely to be affected by serious health effects.</p>
+                    <div class="scale-tips">
+                        <div class="scale-tip"><i class="ph ph-x-circle"></i> Do NOT go outdoors</div>
+                        <div class="scale-tip"><i class="ph ph-door-open"></i> Seal gaps in doors and windows</div>
+                        <div class="scale-tip"><i class="ph ph-ambulance"></i> Emergency services may be needed</div>
+                        <div class="scale-tip"><i class="ph ph-broadcast"></i> Follow official emergency instructions</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Sensitive Groups -->
+        <section class="health-section groups-section" id="sensitiveGroups">
+            <div class="health-section-header">
+                <h2>Who Is Most at Risk?</h2>
+                <p>Certain groups are more vulnerable to the effects of air pollution and should take additional precautions even at moderate AQI levels.</p>
+            </div>
+            <div class="groups-grid">
+                <div class="group-card">
+                    <div class="group-icon"><i class="ph ph-baby"></i></div>
+                    <h3>Children</h3>
+                    <p>Lungs are still developing. Higher breathing rates mean more pollutants inhaled per body weight. Avoid outdoor sports on high-AQI days.</p>
+                </div>
+                <div class="group-card">
+                    <div class="group-icon"><i class="ph ph-person-arms-spread"></i></div>
+                    <h3>Elderly Adults</h3>
+                    <p>Reduced immune response and lung capacity make older adults more susceptible. Cardiovascular and respiratory risks increase significantly.</p>
+                </div>
+                <div class="group-card">
+                    <div class="group-icon"><i class="ph ph-heartbeat"></i></div>
+                    <h3>Heart Conditions</h3>
+                    <p>Fine particles (PM2.5) can enter the bloodstream, triggering inflammation and increasing the risk of heart attacks and strokes.</p>
+                </div>
+                <div class="group-card">
+                    <div class="group-icon"><i class="ph ph-lungs"></i></div>
+                    <h3>Asthma & COPD</h3>
+                    <p>Pollutants like ozone and PM2.5 can trigger asthma attacks and worsen COPD. Always carry a rescue inhaler on high-pollution days.</p>
+                </div>
+                <div class="group-card">
+                    <div class="group-icon"><i class="ph ph-person-simple-run"></i></div>
+                    <h3>Outdoor Athletes</h3>
+                    <p>Exercise increases breathing rate 10–20x, dramatically increasing pollutant intake. Check AQI before outdoor workouts.</p>
+                </div>
+                <div class="group-card">
+                    <div class="group-icon"><i class="ph ph-gender-female"></i></div>
+                    <h3>Pregnant Women</h3>
+                    <p>Air pollution exposure during pregnancy is linked to preterm birth and low birth weight. Extra caution is advised during polluted days.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pollutants Explained -->
+        <section class="health-section pollutants-info-section" id="pollutantsInfo">
+            <div class="health-section-header">
+                <h2>Key Pollutants Explained</h2>
+                <p>Breathe tracks six major air pollutants. Here's what each one is and why it matters for your health.</p>
+            </div>
+            <div class="pollutant-info-grid">
+                <div class="pollutant-info-card">
+                    <div class="pollutant-icon-box">PM<sub style="font-size:0.6rem">2.5</sub></div>
+                    <div>
+                        <h4>Fine Particulate Matter (PM2.5)</h4>
+                        <p>Tiny particles less than 2.5 µm in diameter. They penetrate deep into lung tissue and enter the bloodstream. The most dangerous pollutant for long-term health. WHO safe level: 5 µg/m³ (annual).</p>
+                    </div>
+                </div>
+                <div class="pollutant-info-card">
+                    <div class="pollutant-icon-box">PM<sub style="font-size:0.6rem">10</sub></div>
+                    <div>
+                        <h4>Coarse Particulate Matter (PM10)</h4>
+                        <p>Particles between 2.5 and 10 µm. Includes dust, pollen, and mold. Can cause irritation of the nose, throat, and airways. WHO safe level: 15 µg/m³ (annual).</p>
+                    </div>
+                </div>
+                <div class="pollutant-info-card">
+                    <div class="pollutant-icon-box">NO₂</div>
+                    <div>
+                        <h4>Nitrogen Dioxide (NO₂)</h4>
+                        <p>Mainly from vehicle emissions and power plants. Irritates the respiratory system and contributes to the formation of ozone and PM2.5. WHO safe level: 10 µg/m³ (annual).</p>
+                    </div>
+                </div>
+                <div class="pollutant-info-card">
+                    <div class="pollutant-icon-box">O₃</div>
+                    <div>
+                        <h4>Ozone (O₃)</h4>
+                        <p>Ground-level ozone is formed when sunlight reacts with NOx and VOCs. Causes chest pain, coughing, and worsens asthma. Peaks on hot, sunny days. WHO safe level: 60 µg/m³ (8-hour).</p>
+                    </div>
+                </div>
+                <div class="pollutant-info-card">
+                    <div class="pollutant-icon-box">SO₂</div>
+                    <div>
+                        <h4>Sulphur Dioxide (SO₂)</h4>
+                        <p>Released by burning coal and oil. Causes respiratory irritation and contributes to acid rain. People with asthma are particularly sensitive. WHO safe level: 40 µg/m³ (24-hour).</p>
+                    </div>
+                </div>
+                <div class="pollutant-info-card">
+                    <div class="pollutant-icon-box">CO</div>
+                    <div>
+                        <h4>Carbon Monoxide (CO)</h4>
+                        <p>Produced by incomplete combustion of fuels. Reduces the blood's ability to carry oxygen. At high concentrations can be fatal. Common near heavy traffic. WHO safe level: 10 mg/m³ (8-hour).</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- General Protection Tips -->
+        <section class="health-section" id="generalTips">
+            <div class="health-section-header">
+                <h2>General Protection Strategies</h2>
+                <p>Simple everyday actions that significantly reduce your exposure to air pollution.</p>
+            </div>
+            <div class="groups-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+                <div class="group-card" style="text-align:left; align-items:flex-start;">
+                    <div class="group-icon"><i class="ph ph-mask-happy"></i></div>
+                    <h3>Wear an N95/KN95 Mask</h3>
+                    <p>Properly fitted N95 or KN95 masks filter out 95%+ of airborne particles. Essential when AQI exceeds 150.</p>
+                </div>
+                <div class="group-card" style="text-align:left; align-items:flex-start;">
+                    <div class="group-icon"><i class="ph ph-fan"></i></div>
+                    <h3>Use an Air Purifier</h3>
+                    <p>HEPA air purifiers significantly reduce indoor PM2.5 levels. Keep windows closed and the purifier running during high-pollution days.</p>
+                </div>
+                <div class="group-card" style="text-align:left; align-items:flex-start;">
+                    <div class="group-icon"><i class="ph ph-clock"></i></div>
+                    <h3>Time Your Outdoor Activities</h3>
+                    <p>Pollution is often lowest in the early morning. Avoid peak traffic hours (7–9 AM, 5–7 PM) for outdoor exercise.</p>
+                </div>
+                <div class="group-card" style="text-align:left; align-items:flex-start;">
+                    <div class="group-icon"><i class="ph ph-plant"></i></div>
+                    <h3>Add Indoor Plants</h3>
+                    <p>Plants like Peace Lily, Spider Plant, and Boston Fern can help filter some indoor air pollutants and improve humidity.</p>
+                </div>
+                <div class="group-card" style="text-align:left; align-items:flex-start;">
+                    <div class="group-icon"><i class="ph ph-car"></i></div>
+                    <h3>Reduce Driving</h3>
+                    <p>Opt for public transit, cycling, or walking. Reducing vehicle use is one of the highest-impact actions for cleaner air at a community level.</p>
+                </div>
+                <div class="group-card" style="text-align:left; align-items:flex-start;">
+                    <div class="group-icon"><i class="ph ph-drop-half"></i></div>
+                    <h3>Stay Hydrated</h3>
+                    <p>Drinking adequate water helps your respiratory system flush out particulate matter and keeps mucous membranes functioning well.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="health-section faq-section" id="faq">
+            <div class="health-section-header">
+                <h2>Frequently Asked Questions</h2>
+                <p>Answers to common questions about air quality and its health impacts.</p>
+            </div>
+            <div class="faq-list" id="faqList">
+
+                <div class="faq-item" id="faq1">
+                    <button class="faq-question" aria-expanded="false" aria-controls="faq1Answer" onclick="toggleFAQ('faq1')">
+                        What is a safe AQI level?
+                        <i class="ph ph-caret-down faq-chevron"></i>
+                    </button>
+                    <div class="faq-answer" id="faq1Answer">
+                        <p>An AQI of 0–50 is considered "Good" and poses little risk. 51–100 is "Moderate" and acceptable for most people. For the cleanest air possible, aim for locations with an AQI below 50. The WHO recommends annual average PM2.5 levels below 5 µg/m³ for long-term health.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item" id="faq2">
+                    <button class="faq-question" aria-expanded="false" aria-controls="faq2Answer" onclick="toggleFAQ('faq2')">
+                        Can indoor air be more polluted than outdoor air?
+                        <i class="ph ph-caret-down faq-chevron"></i>
+                    </button>
+                    <div class="faq-answer" id="faq2Answer">
+                        <p>Yes — indoor air can be 2–5x more polluted than outdoor air according to the EPA. Sources include cooking fumes, cleaning products, VOCs from furniture, mold, and pet dander. Use exhaust fans while cooking, choose low-VOC products, and ventilate regularly on good-AQI days.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item" id="faq3">
+                    <button class="faq-question" aria-expanded="false" aria-controls="faq3Answer" onclick="toggleFAQ('faq3')">
+                        Does rain improve air quality?
+                        <i class="ph ph-caret-down faq-chevron"></i>
+                    </button>
+                    <div class="faq-answer" id="faq3Answer">
+                        <p>Yes. Rain acts as a natural scrubber, washing particulate matter out of the atmosphere and reducing dust. AQI levels typically drop noticeably during and after rainfall. However, the effect is temporary — pollution rebounds as traffic and industrial activity resume.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item" id="faq4">
+                    <button class="faq-question" aria-expanded="false" aria-controls="faq4Answer" onclick="toggleFAQ('faq4')">
+                        Is exercising outdoors harmful during moderate AQI (51–100)?
+                        <i class="ph ph-caret-down faq-chevron"></i>
+                    </button>
+                    <div class="faq-answer" id="faq4Answer">
+                        <p>For most healthy adults, exercising during moderate AQI is generally safe. The cardiovascular benefits of exercise typically outweigh the risks at this level. However, if you are in a sensitive group or notice symptoms like coughing or shortness of breath, reduce intensity or move indoors.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item" id="faq5">
+                    <button class="faq-question" aria-expanded="false" aria-controls="faq5Answer" onclick="toggleFAQ('faq5')">
+                        What's the difference between AQI and raw pollutant concentrations?
+                        <i class="ph ph-caret-down faq-chevron"></i>
+                    </button>
+                    <div class="faq-answer" id="faq5Answer">
+                        <p>AQI is a standardized, dimensionless index (0–500) calculated from raw pollutant concentrations (µg/m³ or ppm). It translates complex measurements into a single easy-to-understand number. The US EPA calculates a sub-index for each pollutant and reports the highest as the overall AQI, so the dominant pollutant drives the number.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item" id="faq6">
+                    <button class="faq-question" aria-expanded="false" aria-controls="faq6Answer" onclick="toggleFAQ('faq6')">
+                        How does Breathe get its data?
+                        <i class="ph ph-caret-down faq-chevron"></i>
+                    </button>
+                    <div class="faq-answer" id="faq6Answer">
+                        <p>Breathe uses the <strong>Open-Meteo Air Quality API</strong> — a free, open-source API that aggregates data from the Copernicus Atmosphere Monitoring Service (CAMS) global forecast model. Data is updated hourly. No API key is required, and no personal data is collected.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </div><!-- /.app-container -->
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="logo-icon-wrapper small"><i class="ph ph-wind"></i></div>
+                <span><strong>Breathe</strong> — Air Quality Intelligence</span>
+            </div>
+            <p class="footer-note">Health information is for general guidance only. Always consult a medical professional for personal health advice. Data from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>
+            <p class="footer-copy">&copy; 2026 Breathe Project. Built with ❤️ for cleaner air.</p>
+        </div>
+    </footer>
+
+    <div class="bg-gradient"></div>
+    <div class="bg-noise"></div>
+
+    <script>
+        // FAQ Accordion
+        function toggleFAQ(id) {
+            const item   = document.getElementById(id);
+            const answer = item.querySelector('.faq-answer');
+            const btn    = item.querySelector('.faq-question');
+            const isOpen = item.classList.contains('open');
+
+            // Close all
+            document.querySelectorAll('.faq-item').forEach(el => {
+                el.classList.remove('open');
+                el.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
+                el.querySelector('.faq-answer').style.maxHeight = '0';
+                el.querySelector('.faq-answer').style.paddingBottom = '0';
+            });
+
+            // Open clicked (if it was closed)
+            if (!isOpen) {
+                item.classList.add('open');
+                btn.setAttribute('aria-expanded', 'true');
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+            }
+        }
+
+        // Mobile hamburger
+        document.getElementById('hamburgerBtn').addEventListener('click', () => {
+            document.getElementById('mobileNavDrawer').classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>

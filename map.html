@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breathe | Map View — Global AQI</title>
+    <meta name="description" content="Interactive global air quality map. View real-time AQI levels for cities around the world on an interactive map.">
+    <meta name="theme-color" content="#020617">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌬️</text></svg>">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Leaflet.js -->
+    <link  rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Map-page specific overrides */
+        .app-container { min-height: 100vh; padding-bottom: 0; }
+        .map-section { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; padding-bottom: 2rem; }
+        .map-header { display: flex; justify-content: space-between; align-items: center; }
+        .map-wrapper {
+            flex: 1; border-radius: 24px; overflow: hidden;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            min-height: 560px;
+            position: relative;
+        }
+        #aqiMap { width: 100%; height: 100%; min-height: 560px; }
+
+        /* Legend */
+        .map-legend {
+            display: flex; flex-wrap: wrap; gap: 0.75rem;
+            padding: 1rem 1.5rem; border-radius: 16px;
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            backdrop-filter: blur(20px);
+        }
+        .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; font-weight: 500; }
+        .legend-dot  { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+        /* Leaflet popup custom */
+        .leaflet-popup-content-wrapper {
+            background: rgba(10,18,38,0.95) !important;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.12) !important;
+            border-radius: 16px !important;
+            color: #fff !important;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.5) !important;
+            font-family: 'Outfit', sans-serif !important;
+        }
+        .leaflet-popup-tip { background: rgba(10,18,38,0.95) !important; }
+        .leaflet-popup-close-button { color: rgba(255,255,255,0.6) !important; font-size: 1.2rem !important; }
+        .popup-content { padding: 0.25rem; }
+        .popup-city    { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem; }
+        .popup-country { font-size: 0.82rem; color: rgba(255,255,255,0.55); margin-bottom: 1rem; }
+        .popup-aqi-row { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.5rem; }
+        .popup-aqi-val { font-size: 2.5rem; font-weight: 800; line-height: 1; }
+        .popup-aqi-label { font-size: 0.9rem; color: rgba(255,255,255,0.6); }
+        .popup-status  { display: inline-block; padding: 0.2rem 0.75rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 1rem; }
+        .popup-link    { display: block; text-align: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 99px; padding: 0.45rem 1rem; font-size: 0.85rem; font-weight: 600; color: #fff; text-decoration: none; transition: background 0.2s; }
+        .popup-link:hover { background: rgba(255,255,255,0.2); }
+
+        /* Custom marker */
+        .custom-marker {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 800; color: #fff;
+            border: 2px solid rgba(255,255,255,0.4);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+            font-family: 'Outfit', sans-serif;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        /* Loading overlay on map */
+        .map-loading-overlay {
+            position: absolute; inset: 0; z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(2,6,23,0.7); backdrop-filter: blur(4px);
+            border-radius: 24px;
+            flex-direction: column; gap: 1rem;
+            color: rgba(255,255,255,0.8); font-weight: 500;
+        }
+        .map-loading-overlay .loader { margin: 0; }
+    </style>
+</head>
+<body class="theme-default">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="app-container">
+        <!-- Navigation -->
+        <nav class="top-nav">
+            <a href="index.html" class="logo" aria-label="Breathe Home">
+                <div class="logo-icon-wrapper"><i class="ph ph-wind"></i></div>
+                <span>Breathe<span class="logo-dot">.</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Dashboard</a>
+                <a href="map.html" class="active">Map View</a>
+                <a href="health.html">Health Tips</a>
+            </div>
+            <div class="nav-right">
+                <button class="glass-btn" id="refreshMapBtn"><i class="ph ph-arrows-clockwise"></i> Refresh</button>
+                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open menu"><i class="ph ph-list"></i></button>
+            </div>
+        </nav>
+
+        <!-- Mobile Drawer -->
+        <div class="mobile-nav-drawer hidden" id="mobileNavDrawer">
+            <a href="index.html">Dashboard</a>
+            <a href="map.html">Map View</a>
+            <a href="health.html">Health Tips</a>
+        </div>
+
+        <div class="map-section">
+            <div class="map-header">
+                <div>
+                    <h1 style="font-size:2rem;">Global AQI <span style="color:var(--theme-accent)">Map</span></h1>
+                    <p style="margin-top:0.3rem;">Click any marker to view live air quality data.</p>
+                </div>
+                <div class="map-legend" id="mapLegend">
+                    <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div> Good</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#fbbf24"></div> Moderate</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div> Sensitive</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> Unhealthy</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#8b5cf6"></div> Very Unhealthy</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#e11d48"></div> Hazardous</div>
+                </div>
+            </div>
+
+            <div class="map-wrapper glass-panel">
+                <div class="map-loading-overlay" id="mapLoadingOverlay">
+                    <div class="loader"></div>
+                    <span>Loading live AQI data…</span>
+                </div>
+                <div id="aqiMap"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="logo-icon-wrapper small"><i class="ph ph-wind"></i></div>
+                <span><strong>Breathe</strong> — Air Quality Intelligence</span>
+            </div>
+            <p class="footer-note">Map tiles &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors. AQI data from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>
+        </div>
+    </footer>
+
+    <div class="bg-gradient"></div>
+    <div class="bg-noise"></div>
+
+    <script>
+        // ---------------------------------------------------------------
+        // AQI Cities for the map (60 cities worldwide)
+        // ---------------------------------------------------------------
+        const MAP_CITIES = [
+            // Asia
+            { name: 'Delhi',      country: 'India',       lat: 28.6139, lon: 77.2090 },
+            { name: 'Mumbai',     country: 'India',       lat: 19.0760, lon: 72.8777 },
+            { name: 'Kolkata',    country: 'India',       lat: 22.5726, lon: 88.3639 },
+            { name: 'Chennai',    country: 'India',       lat: 13.0827, lon: 80.2707 },
+            { name: 'Bangalore',  country: 'India',       lat: 12.9716, lon: 77.5946 },
+            { name: 'Beijing',    country: 'China',       lat: 39.9042, lon: 116.4074 },
+            { name: 'Shanghai',   country: 'China',       lat: 31.2304, lon: 121.4737 },
+            { name: 'Guangzhou',  country: 'China',       lat: 23.1291, lon: 113.2644 },
+            { name: 'Chengdu',    country: 'China',       lat: 30.5728, lon: 104.0668 },
+            { name: 'Lahore',     country: 'Pakistan',    lat: 31.5204, lon: 74.3587 },
+            { name: 'Karachi',    country: 'Pakistan',    lat: 24.8607, lon: 67.0011 },
+            { name: 'Dhaka',      country: 'Bangladesh',  lat: 23.8103, lon: 90.4125 },
+            { name: 'Jakarta',    country: 'Indonesia',   lat: -6.2088, lon: 106.8456 },
+            { name: 'Bangkok',    country: 'Thailand',    lat: 13.7563, lon: 100.5018 },
+            { name: 'Tokyo',      country: 'Japan',       lat: 35.6762, lon: 139.6503 },
+            { name: 'Seoul',      country: 'South Korea', lat: 37.5665, lon: 126.9780 },
+            { name: 'Kathmandu',  country: 'Nepal',       lat: 27.7172, lon: 85.3240 },
+            { name: 'Colombo',    country: 'Sri Lanka',   lat: 6.9271,  lon: 79.8612 },
+            // Middle East
+            { name: 'Tehran',     country: 'Iran',        lat: 35.6892, lon: 51.3890 },
+            { name: 'Riyadh',     country: 'Saudi Arabia',lat: 24.6877, lon: 46.7219 },
+            { name: 'Dubai',      country: 'UAE',         lat: 25.2048, lon: 55.2708 },
+            { name: 'Baghdad',    country: 'Iraq',        lat: 33.3152, lon: 44.3661 },
+            // Africa
+            { name: 'Cairo',      country: 'Egypt',       lat: 30.0444, lon: 31.2357 },
+            { name: 'Lagos',      country: 'Nigeria',     lat: 6.5244,  lon: 3.3792 },
+            { name: 'Nairobi',    country: 'Kenya',       lat: -1.2921, lon: 36.8219 },
+            { name: 'Johannesburg',country:'South Africa', lat: -26.2041, lon: 28.0473 },
+            { name: 'Casablanca', country: 'Morocco',     lat: 33.5731, lon: -7.5898 },
+            // Europe
+            { name: 'London',     country: 'UK',          lat: 51.5074, lon: -0.1278 },
+            { name: 'Paris',      country: 'France',      lat: 48.8566, lon: 2.3522 },
+            { name: 'Berlin',     country: 'Germany',     lat: 52.5200, lon: 13.4050 },
+            { name: 'Madrid',     country: 'Spain',       lat: 40.4168, lon: -3.7038 },
+            { name: 'Rome',       country: 'Italy',       lat: 41.9028, lon: 12.4964 },
+            { name: 'Warsaw',     country: 'Poland',      lat: 52.2297, lon: 21.0122 },
+            { name: 'Athens',     country: 'Greece',      lat: 37.9838, lon: 23.7275 },
+            { name: 'Kyiv',       country: 'Ukraine',     lat: 50.4501, lon: 30.5234 },
+            { name: 'Moscow',     country: 'Russia',      lat: 55.7558, lon: 37.6173 },
+            // Americas
+            { name: 'New York',   country: 'USA',         lat: 40.7128, lon: -74.0060 },
+            { name: 'Los Angeles',country: 'USA',         lat: 34.0522, lon: -118.2437 },
+            { name: 'Chicago',    country: 'USA',         lat: 41.8781, lon: -87.6298 },
+            { name: 'Houston',    country: 'USA',         lat: 29.7604, lon: -95.3698 },
+            { name: 'Mexico City',country: 'Mexico',      lat: 19.4326, lon: -99.1332 },
+            { name: 'São Paulo',  country: 'Brazil',      lat: -23.5505, lon: -46.6333 },
+            { name: 'Buenos Aires',country:'Argentina',   lat: -34.6037, lon: -58.3816 },
+            { name: 'Bogotá',     country: 'Colombia',    lat: 4.7110,   lon: -74.0721 },
+            { name: 'Lima',       country: 'Peru',        lat: -12.0464, lon: -77.0428 },
+            { name: 'Santiago',   country: 'Chile',       lat: -33.4489, lon: -70.6693 },
+            { name: 'Toronto',    country: 'Canada',      lat: 43.6532,  lon: -79.3832 },
+            // Oceania
+            { name: 'Sydney',     country: 'Australia',   lat: -33.8688, lon: 151.2093 },
+            { name: 'Melbourne',  country: 'Australia',   lat: -37.8136, lon: 144.9631 },
+            { name: 'Auckland',   country: 'New Zealand', lat: -36.8485, lon: 174.7633 },
+        ];
+
+        // ---------------------------------------------------------------
+        // AQI helpers
+        // ---------------------------------------------------------------
+        const AQI_COLORS = {
+            good: '#10b981', moderate: '#fbbf24', sensitive: '#f97316',
+            unhealthy: '#ef4444', 'very-unhealthy': '#8b5cf6', hazardous: '#e11d48'
+        };
+
+        function getAQIInfo(aqi) {
+            if (aqi <= 50)  return { status: 'Good',                          theme: 'good' };
+            if (aqi <= 100) return { status: 'Moderate',                      theme: 'moderate' };
+            if (aqi <= 150) return { status: 'Unhealthy for Sensitive Groups', theme: 'sensitive' };
+            if (aqi <= 200) return { status: 'Unhealthy',                     theme: 'unhealthy' };
+            if (aqi <= 300) return { status: 'Very Unhealthy',                theme: 'very-unhealthy' };
+            return            { status: 'Hazardous',                          theme: 'hazardous' };
+        }
+
+        // ---------------------------------------------------------------
+        // Init Map
+        // ---------------------------------------------------------------
+        const map = L.map('aqiMap', {
+            center: [20, 10], zoom: 2,
+            zoomControl: true,
+            attributionControl: true,
+        });
+
+        // Dark tile layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+            subdomains: 'abcd', maxZoom: 19
+        }).addTo(map);
+
+        // ---------------------------------------------------------------
+        // Load AQI & Place Markers
+        // ---------------------------------------------------------------
+        async function loadMapData() {
+            const overlay = document.getElementById('mapLoadingOverlay');
+            overlay.style.display = 'flex';
+
+            // Fetch in batches of 10 to be nice to the API
+            const BATCH = 10;
+            for (let i = 0; i < MAP_CITIES.length; i += BATCH) {
+                const batch = MAP_CITIES.slice(i, i + BATCH);
+                const results = await Promise.allSettled(
+                    batch.map(city =>
+                        fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${city.lat}&longitude=${city.lon}&current=us_aqi&timezone=auto`)
+                            .then(r => r.json())
+                            .then(data => ({ ...city, aqi: Math.round(data.current?.us_aqi ?? 0) }))
+                    )
+                );
+                results.forEach((res, idx) => {
+                    const city = res.status === 'fulfilled' ? res.value : { ...batch[idx], aqi: null };
+                    placeMarker(city);
+                });
+            }
+            overlay.style.display = 'none';
+        }
+
+        function placeMarker(city) {
+            const aqi  = city.aqi ?? 0;
+            const info = getAQIInfo(aqi);
+            const color = AQI_COLORS[info.theme];
+
+            const markerEl = document.createElement('div');
+            markerEl.className = 'custom-marker';
+            markerEl.style.cssText = `background:${color}; border-color:${color}55;`;
+            markerEl.textContent = city.aqi ?? '?';
+
+            const icon = L.divIcon({ html: markerEl, iconSize: [36, 36], iconAnchor: [18, 18], popupAnchor: [0, -20], className: '' });
+            const marker = L.marker([city.lat, city.lon], { icon }).addTo(map);
+
+            const dashboardUrl = `index.html`;
+            marker.bindPopup(`
+                <div class="popup-content">
+                    <div class="popup-city">${city.name}</div>
+                    <div class="popup-country">${city.country}</div>
+                    <div class="popup-aqi-row">
+                        <span class="popup-aqi-val" style="color:${color}">${city.aqi ?? '--'}</span>
+                        <span class="popup-aqi-label">AQI</span>
+                    </div>
+                    <span class="popup-status" style="background:${color}22;color:${color};border:1px solid ${color}44">${info.status}</span>
+                    <a href="${dashboardUrl}" class="popup-link" onclick="sessionStorage.setItem('mapCity','${JSON.stringify({name:city.name,lat:city.lat,lon:city.lon})}')">
+                        <i class="ph ph-chart-bar"></i> View Full Data
+                    </a>
+                </div>
+            `, { maxWidth: 240 });
+        }
+
+        // ---------------------------------------------------------------
+        // Refresh button
+        // ---------------------------------------------------------------
+        document.getElementById('refreshMapBtn').addEventListener('click', () => {
+            map.eachLayer(layer => { if (layer instanceof L.Marker) map.removeLayer(layer); });
+            loadMapData();
+        });
+
+        // ---------------------------------------------------------------
+        // Mobile Hamburger
+        // ---------------------------------------------------------------
+        document.getElementById('hamburgerBtn').addEventListener('click', () => {
+            const drawer = document.getElementById('mobileNavDrawer');
+            drawer.classList.toggle('hidden');
+        });
+
+        // ---------------------------------------------------------------
+        // Start
+        // ---------------------------------------------------------------
+        loadMapData();
+    </script>
+</body>
+</html>

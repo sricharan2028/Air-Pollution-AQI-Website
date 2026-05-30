@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breathe | Real-time Air Quality Index</title>
+    <meta name="description" content="Check real-time Air Quality Index (AQI) and pollution metrics for any city or country worldwide. Powered by Open-Meteo.">
+    <meta name="theme-color" content="#020617">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌬️</text></svg>">
+    <link rel="manifest" href="manifest.json">
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-default">
+    <!-- Animated Background Orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="app-container">
+        <!-- Navigation -->
+        <nav class="top-nav">
+            <a href="index.html" class="logo" aria-label="Breathe Home">
+                <div class="logo-icon-wrapper">
+                    <i class="ph ph-wind"></i>
+                </div>
+                <span>Breathe<span class="logo-dot">.</span></span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="active" id="navDashboard">Dashboard</a>
+                <a href="map.html"   id="navMap">Map View</a>
+                <a href="health.html" id="navHealth">Health Tips</a>
+            </div>
+            <div class="nav-right">
+                <button class="glass-btn" id="alertsBtn" aria-label="Set Alerts">
+                    <i class="ph ph-bell"></i> Alerts
+                </button>
+                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open menu" aria-expanded="false">
+                    <i class="ph ph-list"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Mobile Nav Drawer -->
+        <div class="mobile-nav-drawer hidden" id="mobileNavDrawer">
+            <a href="index.html">Dashboard</a>
+            <a href="map.html">Map View</a>
+            <a href="health.html">Health Tips</a>
+        </div>
+
+        <!-- Search Header Area -->
+        <header class="hero-header" id="heroHeader">
+            <div class="hero-content">
+                <h1 class="hero-title">Air Quality<br>Intelligence.</h1>
+                <p class="hero-subtitle">Real-time global pollution metrics and health advisories powered by Open-Meteo.</p>
+
+                <div class="search-wrapper hero-search">
+                    <div class="search-box glass-panel glass-panel-glow">
+                        <i class="ph ph-magnifying-glass search-icon"></i>
+                        <input type="text" id="searchInput" placeholder="Search for a city or country..." autocomplete="off" aria-label="Search for a city" aria-autocomplete="list" aria-controls="suggestionsList">
+                        <button id="clearSearch" class="clear-btn hidden" aria-label="Clear search">
+                            <i class="ph ph-x"></i>
+                        </button>
+                        <div id="searchLoader" class="loader hidden"></div>
+                    </div>
+                    <!-- Suggestions Dropdown -->
+                    <ul id="suggestionsList" class="suggestions-dropdown hidden" role="listbox" aria-label="City suggestions"></ul>
+                </div>
+            </div>
+
+            <div class="hero-stats glass-panel">
+                <div class="stat">
+                    <span class="stat-value">8000+</span>
+                    <span class="stat-label">Cities Monitored</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-value">Live</span>
+                    <span class="stat-label">Data Updates</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-value">6</span>
+                    <span class="stat-label">Pollutants Tracked</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-value">Free</span>
+                    <span class="stat-label">No API Key</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Global Hotspots (Home Page Content) -->
+        <div class="hotspots-section" id="emptyState">
+            <div class="section-header">
+                <h2>Global Hotspots</h2>
+                <span class="live-badge"><span class="live-dot"></span> Live</span>
+            </div>
+            <div class="hotspots-grid" id="hotspotsGrid">
+                <!-- Loading skeletons -->
+                <div class="hotspot-card glass-panel skeleton-card"></div>
+                <div class="hotspot-card glass-panel skeleton-card"></div>
+                <div class="hotspot-card glass-panel skeleton-card"></div>
+                <div class="hotspot-card glass-panel skeleton-card"></div>
+                <div class="hotspot-card glass-panel skeleton-card"></div>
+                <div class="hotspot-card glass-panel skeleton-card"></div>
+                <div class="hotspot-card glass-panel skeleton-card"></div>
+                <div class="hotspot-card glass-panel skeleton-card"></div>
+            </div>
+        </div>
+
+        <!-- Main Data Content Area (Hidden initially) -->
+        <main class="main-content hidden" id="mainContent" aria-live="polite">
+            <button class="back-btn" id="backBtn" aria-label="Back to home">
+                <i class="ph ph-arrow-left"></i> Back to Home
+            </button>
+
+            <div class="location-header glass-panel">
+                <div class="location-info">
+                    <h2 id="cityName">London, United Kingdom</h2>
+                    <div class="location-meta">
+                        <span class="badge"><i class="ph ph-map-pin"></i> Location</span>
+                        <p id="timestamp">Updated: Just now</p>
+                    </div>
+                </div>
+                <div class="location-actions">
+                    <button class="icon-btn" id="shareBtn" title="Share">
+                        <i class="ph ph-share-network"></i>
+                    </button>
+                    <button class="icon-btn" id="bookmarkBtn" title="Save Location">
+                        <i class="ph ph-bookmark-simple"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="dashboard">
+                <!-- Primary AQI Card -->
+                <div class="card primary-card glass-panel glass-panel-glow">
+                    <div class="aqi-header">
+                        <h3>Air Quality Index</h3>
+                        <span class="aqi-standard glass-badge">US EPA Standard</span>
+                    </div>
+
+                    <div class="aqi-display">
+                        <div class="aqi-ring-wrapper">
+                            <svg class="progress-ring" width="220" height="220" aria-hidden="true">
+                                <circle class="progress-ring__circle_bg" stroke="rgba(255,255,255,0.1)" stroke-width="8" fill="transparent" r="100" cx="110" cy="110"/>
+                                <circle class="progress-ring__circle" id="aqiRing" stroke="var(--theme-accent)" stroke-width="8" fill="transparent" r="100" cx="110" cy="110" stroke-linecap="round"/>
+                            </svg>
+                            <div class="aqi-value-circle">
+                                <span class="aqi-number" id="aqiValue">--</span>
+                                <span class="aqi-label">AQI</span>
+                            </div>
+                        </div>
+                        <div class="aqi-status-info">
+                            <div class="status-badge" id="aqiStatusBadge">--</div>
+                            <h3 id="aqiStatus">--</h3>
+                            <p id="aqiMessage">Search for a location to see air quality data.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pollutants Grid -->
+                <div class="pollutants-container">
+                    <div class="section-header small">
+                        <h3>Detailed Pollutants</h3>
+                        <span class="glass-badge">µg/m³</span>
+                    </div>
+                    <div class="pollutants-grid">
+
+                        <div class="card glass-panel pollutant-card">
+                            <div class="pollutant-header">
+                                <span class="pollutant-name">PM<sub>2.5</sub></span>
+                                <i class="ph ph-info pollutant-info" title="Fine particulate matter (diameter &lt; 2.5 µm). Most harmful pollutant."></i>
+                            </div>
+                            <div class="pollutant-value"><span id="pm25Value">--</span> <span class="unit">µg/m³</span></div>
+                            <div class="pollutant-bar"><div class="bar-fill" id="pm25Bar" style="width:0%"></div></div>
+                        </div>
+
+                        <div class="card glass-panel pollutant-card">
+                            <div class="pollutant-header">
+                                <span class="pollutant-name">PM<sub>10</sub></span>
+                                <i class="ph ph-info pollutant-info" title="Respirable particulate matter (diameter &lt; 10 µm)."></i>
+                            </div>
+                            <div class="pollutant-value"><span id="pm10Value">--</span> <span class="unit">µg/m³</span></div>
+                            <div class="pollutant-bar"><div class="bar-fill" id="pm10Bar" style="width:0%"></div></div>
+                        </div>
+
+                        <div class="card glass-panel pollutant-card">
+                            <div class="pollutant-header">
+                                <span class="pollutant-name">NO₂</span>
+                                <i class="ph ph-info pollutant-info" title="Nitrogen Dioxide — from vehicle exhausts and combustion."></i>
+                            </div>
+                            <div class="pollutant-value"><span id="no2Value">--</span> <span class="unit">µg/m³</span></div>
+                            <div class="pollutant-bar"><div class="bar-fill" id="no2Bar" style="width:0%"></div></div>
+                        </div>
+
+                        <div class="card glass-panel pollutant-card">
+                            <div class="pollutant-header">
+                                <span class="pollutant-name">O₃</span>
+                                <i class="ph ph-info pollutant-info" title="Ozone — secondary pollutant formed from NOx and VOCs in sunlight."></i>
+                            </div>
+                            <div class="pollutant-value"><span id="o3Value">--</span> <span class="unit">µg/m³</span></div>
+                            <div class="pollutant-bar"><div class="bar-fill" id="o3Bar" style="width:0%"></div></div>
+                        </div>
+
+                        <div class="card glass-panel pollutant-card">
+                            <div class="pollutant-header">
+                                <span class="pollutant-name">SO₂</span>
+                                <i class="ph ph-info pollutant-info" title="Sulphur Dioxide — from burning fossil fuels with high sulphur content."></i>
+                            </div>
+                            <div class="pollutant-value"><span id="so2Value">--</span> <span class="unit">µg/m³</span></div>
+                            <div class="pollutant-bar"><div class="bar-fill" id="so2Bar" style="width:0%"></div></div>
+                        </div>
+
+                        <div class="card glass-panel pollutant-card">
+                            <div class="pollutant-header">
+                                <span class="pollutant-name">CO</span>
+                                <i class="ph ph-info pollutant-info" title="Carbon Monoxide — produced by incomplete combustion of fuels."></i>
+                            </div>
+                            <div class="pollutant-value"><span id="coValue">--</span> <span class="unit">µg/m³</span></div>
+                            <div class="pollutant-bar"><div class="bar-fill" id="coBar" style="width:0%"></div></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Error State -->
+        <div class="error-state glass-panel hidden" id="errorState" role="alert">
+            <div class="error-icon"><i class="ph ph-cloud-slash"></i></div>
+            <div class="error-content">
+                <h3 id="errorTitle">Data Unavailable</h3>
+                <p id="errorMessage">Could not fetch data. Please check your connection and try again.</p>
+            </div>
+            <button class="glass-btn" id="retryBtn">
+                <i class="ph ph-arrow-clockwise"></i> Try Again
+            </button>
+        </div>
+
+    </div><!-- /.app-container -->
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="logo-icon-wrapper small"><i class="ph ph-wind"></i></div>
+                <span><strong>Breathe</strong> — Air Quality Intelligence</span>
+            </div>
+            <p class="footer-note">Data sourced from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>. Free & open-source.</p>
+            <p class="footer-copy">&copy; 2026 Breathe Project. Built with ❤️ for cleaner air.</p>
+        </div>
+    </footer>
+
+    <!-- Background Elements -->
+    <div class="bg-gradient" id="bgGradient"></div>
+    <div class="bg-noise"></div>
+
+    <script src="app.js"></script>
+    <script>
+        // Mobile hamburger
+        const hamburgerBtn    = document.getElementById('hamburgerBtn');
+        const mobileNavDrawer = document.getElementById('mobileNavDrawer');
+        hamburgerBtn.addEventListener('click', () => {
+            const open = !mobileNavDrawer.classList.contains('hidden');
+            mobileNavDrawer.classList.toggle('hidden', open);
+            hamburgerBtn.setAttribute('aria-expanded', String(!open));
+        });
+
+        // Alerts button placeholder
+        document.getElementById('alertsBtn').addEventListener('click', () => {
+            showToast('🔔 Alert feature coming soon!');
+        });
+    </script>
+</body>
+</html>
